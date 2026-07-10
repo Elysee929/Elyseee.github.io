@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111111">
+  <title>Frame / 摄影委托</title>
+  <style>
+    :root { --ink:#111; --paper:#f4f4f2; --line:rgba(17,17,17,.17); --soft:rgba(255,255,255,.46); --muted:#6b6b6b; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif; font-size:16px; letter-spacing:0; }
+    button,input,textarea { font:inherit; letter-spacing:0; }
+    button { cursor:pointer; }
+    .shell { width:min(1180px,calc(100% - 40px)); margin:auto; }
+    .topbar { min-height:74px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+    .brand { font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:0; }
+    .brand span { font-weight:400; color:var(--muted); }
+    .nav { display:flex; align-items:center; gap:22px; }
+    .nav a { color:var(--ink); text-decoration:none; font-size:14px; }
+    .icon-button { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; background:transparent; color:var(--ink); }
+    .icon-button:hover { background:#111; color:white; }
+    .hero { min-height:440px; padding:74px 0 62px; display:grid; grid-template-columns:1.25fr .75fr; gap:48px; align-items:end; border-bottom:1px solid var(--line); }
+    .eyebrow { margin:0 0 18px; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; }
+    h1 { max-width:780px; margin:0; font-size:clamp(42px,7vw,88px); line-height:.98; font-weight:800; }
+    .hero-copy { max-width:320px; padding-bottom:7px; color:#3e3e3e; line-height:1.7; }
+    .hero-meta { margin-top:30px; display:flex; gap:28px; flex-wrap:wrap; font-size:14px; }
+    .hero-meta span { display:flex; gap:8px; align-items:center; }
+    .dot { display:inline-block; width:7px; height:7px; background:#111; border-radius:50%; }
+    section { padding:74px 0; border-bottom:1px solid var(--line); }
+    .section-head { display:flex; align-items:end; justify-content:space-between; gap:24px; margin-bottom:28px; }
+    h2 { margin:0; font-size:30px; line-height:1.1; }
+    .section-note { margin:0; max-width:340px; font-size:14px; line-height:1.6; color:var(--muted); }
+    .job-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .job-card { position:relative; min-height:245px; overflow:hidden; padding:24px; display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--line); border-radius:7px; background:rgba(255,255,255,.12); transition:transform .35s cubic-bezier(.2,.7,.2,1),background .35s,border-color .35s,box-shadow .35s; }
+    .job-card::before { content:""; position:absolute; inset:-45%; background:transparent; opacity:0; transition:opacity .35s; pointer-events:none; }
+    .job-card:hover { transform:translateY(-5px) scale(1.008); background:rgba(255,255,255,.62); border-color:rgba(255,255,255,.86); box-shadow:0 18px 38px rgba(0,0,0,.14),inset 0 1px rgba(255,255,255,.85); backdrop-filter:blur(18px) saturate(120%); -webkit-backdrop-filter:blur(18px) saturate(120%); }
+    .job-card:hover::before { opacity:1; }
+    .job-card > * { position:relative; z-index:1; }
+    .job-type { margin:0; font-size:12px; color:var(--muted); font-weight:700; }
+    .job-card h3 { margin:10px 0 8px; max-width:410px; font-size:25px; line-height:1.15; }
+    .job-card p { margin:0; max-width:430px; color:#444; line-height:1.55; font-size:14px; white-space:pre-wrap; }
+    .job-bottom { display:flex; align-items:end; justify-content:space-between; gap:12px; margin-top:24px; }
+    .price { font-size:22px; font-weight:800; white-space:nowrap; }
+    .arrow { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; color:var(--ink); font-size:23px; line-height:1; text-decoration:none; transition:background .25s,color .25s; }
+    .arrow:hover { background:#111; color:#fff; }
+    .empty { min-height:180px; display:grid; place-items:center; border:1px dashed #aaa; border-radius:7px; color:var(--muted); font-size:14px; }
+    .equipment { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-top:1px solid var(--line); border-left:1px solid var(--line); }
+    .equipment-item { min-height:128px; padding:20px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); display:flex; flex-direction:column; justify-content:space-between; }
+    .equipment-item span { font-size:13px; color:var(--muted); }
+    .equipment-item strong { font-size:20px; overflow-wrap:anywhere; }
+    .gallery { display:grid; grid-template-columns:repeat(12,1fr); grid-auto-rows:72px; gap:10px; }
+    .photo { position:relative; overflow:hidden; border-radius:6px; background:#d7d7d5; border:1px solid var(--line); }
+    .photo:nth-child(5n+1) { grid-column:span 5; grid-row:span 4; }
+    .photo:nth-child(5n+2) { grid-column:span 3; grid-row:span 3; }
+    .photo:nth-child(5n+3) { grid-column:span 4; grid-row:span 3; }
+    .photo:nth-child(5n+4) { grid-column:span 4; grid-row:span 4; }
+    .photo:nth-child(5n+5) { grid-column:span 4; grid-row:span 4; }
+    .photo img { width:100%; height:100%; display:block; object-fit:cover; filter:grayscale(1) contrast(1.08); transition:transform .5s; }
+    .photo:hover img { transform:scale(1.04); }
+    .placeholder { display:grid; place-items:center; min-height:100%; background:#d7d7d5; color:#4c4c4c; font-size:12px; text-align:center; padding:16px; }
+    .footer { padding:42px 0 52px; display:flex; justify-content:space-between; gap:20px; color:var(--muted); font-size:13px; }
+    .manage { position:fixed; inset:0; z-index:10; display:none; background:rgba(17,17,17,.38); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+    .manage.open { display:block; }
+    .panel { height:100%; width:min(720px,100%); margin-left:auto; overflow:auto; padding:28px; background:#f7f7f5; box-shadow:-12px 0 34px rgba(0,0,0,.16); }
+    .panel-head { display:flex; justify-content:space-between; align-items:center; padding-bottom:22px; border-bottom:1px solid var(--line); }
+    .panel-head h2 { font-size:25px; }
+    .editor-section { padding:28px 0; border-bottom:1px solid var(--line); }
+    .editor-section h3 { margin:0 0 14px; font-size:18px; }
+    .editor-list { display:grid; gap:12px; }
+    .editor-card { padding:16px; border:1px solid var(--line); border-radius:7px; background:#fff; }
+    .editor-card label { display:block; margin:12px 0 6px; font-size:12px; color:var(--muted); }
+    .editor-card label:first-child { margin-top:0; }
+    input, textarea { width:100%; padding:10px 11px; border:1px solid #bbb; border-radius:4px; background:#fafafa; color:var(--ink); outline:none; }
+    input:focus,textarea:focus { border-color:#111; background:white; }
+    textarea { min-height:76px; resize:vertical; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:15px; }
+    .button { border:1px solid #111; border-radius:4px; padding:10px 14px; background:#111; color:#fff; font-size:14px; }
+    .button:hover { background:#333; }
+    .button.ghost { background:transparent; color:#111; border-color:var(--line); }
+    .button.danger { color:#9e1b1b; }
+    .filebox { border:1px dashed #aaa; padding:15px; border-radius:6px; background:#fff; }
+    .filebox input { padding:0; border:0; background:transparent; }
+    .hint { margin:10px 0 0; font-size:12px; color:var(--muted); line-height:1.5; }
+    @media (max-width:700px) { .shell { width:min(100% - 28px,1180px); } .topbar { min-height:64px; } .nav { gap:14px; } .nav a { font-size:13px; } .hero { min-height:auto; padding:56px 0 48px; grid-template-columns:1fr; gap:28px; } h1 { font-size:48px; } section { padding:52px 0; } .section-head { display:block; } .section-note { margin-top:12px; } .job-grid { grid-template-columns:1fr; } .job-card { min-height:220px; } .equipment { grid-template-columns:repeat(2,minmax(0,1fr)); } .gallery { grid-auto-rows:52px; gap:7px; } .photo:nth-child(n) { grid-column:span 6; grid-row:span 4; } .photo:nth-child(3n+1) { grid-column:span 12; } .footer { display:block; line-height:1.8; } .panel { padding:20px 14px; } }
+    /* High-contrast visual production system */
+    :root { --ink:#f4f4ef; --paper:#0a0a0a; --line:#303030; --soft:rgba(255,255,255,.08); --muted:#a5a5a0; --signal:#eaff31; }
+    body { background:var(--paper); color:var(--ink); }
+    .shell { width:min(1240px,calc(100% - 48px)); }
+    .topbar { border-color:var(--line); }
+    .brand { font-size:22px; font-weight:900; }
+    .brand span { color:var(--signal); font-weight:800; }
+    .nav a { color:var(--ink); font-weight:700; }
+    .nav a:hover { color:var(--signal); }
+    .icon-button { border-radius:3px; border-color:var(--signal); color:var(--signal); }
+    .icon-button:hover { background:var(--signal); color:#080808; }
+    .hero { min-height:510px; padding:92px 0 70px; border-color:var(--line); position:relative; }
+    .hero::after { content:"01 / VISUAL SERVICES"; position:absolute; right:0; top:54px; padding:7px 10px; background:var(--signal); color:#0a0a0a; font-size:11px; font-weight:900; }
+    .eyebrow { color:var(--signal); font-weight:900; }
+    h1 { max-width:850px; font-weight:900; text-transform:uppercase; }
+    .hero-copy,.job-card p { color:#c8c8c2; }
+    .dot { background:var(--signal); border-radius:0; }
+    section { border-color:var(--line); }
+    h2 { font-size:34px; font-weight:900; }
+    .section-note { color:var(--muted); }
+    .job-grid { gap:12px; }
+    .job-card { min-height:270px; padding:25px; border-radius:0; border-color:#363636; border-left:5px solid var(--signal); background:#151515; }
+    .job-card:hover { transform:translateY(-6px); background:rgba(38,38,36,.72); border-color:var(--signal); box-shadow:0 20px 48px rgba(0,0,0,.42),inset 0 1px rgba(255,255,255,.16); }
+    .job-card::after { content:"FRAME / 2026"; position:absolute; right:20px; top:18px; color:#73736d; font-size:10px; font-weight:800; }
+    .job-type { color:var(--signal); }
+    .job-card h3 { font-size:28px; font-weight:900; }
+    .price { color:var(--signal); font-weight:900; }
+    .arrow { border-radius:0; border-color:var(--signal); color:var(--signal); font-weight:900; }
+    .arrow:hover { background:var(--signal); color:#090909; }
+    .equipment { border-color:var(--line); }
+    .equipment-item { min-height:145px; background:#111; border-color:var(--line); }
+    .equipment-item span { color:var(--signal); }
+    .equipment-item strong { font-weight:900; }
+    .photo { border-radius:0; background:#181818; border-color:#393939; }
+    .photo img { filter:grayscale(1) contrast(1.15); }
+    .placeholder { background:#191919; color:#aaa; }
+    .footer { color:#8e8e88; }
+    .manage { background:rgba(0,0,0,.72); }
+    .panel { background:#101010; color:var(--ink); box-shadow:-20px 0 50px rgba(0,0,0,.48); }
+    .panel-head,.editor-section { border-color:var(--line); }
+    .editor-card,.filebox { border-radius:0; border-color:#393939; background:#181818; }
+    .editor-card label,.hint { color:#b2b2ac; }
+    input,textarea { border-radius:0; border-color:#4b4b4b; background:#101010; color:#f4f4ef; }
+    input:focus,textarea:focus { border-color:var(--signal); background:#151515; }
+    .button { border-radius:0; border-color:var(--signal); background:var(--signal); color:#090909; font-weight:800; }
+    .button:hover { background:#f4f4ef; }
+    .button.ghost { color:var(--signal); border-color:var(--signal); }
+    .button.ghost:hover { background:var(--signal); color:#090909; }
+    .button.danger { color:#ff7d64; border-color:#ff7d64; }
+    /* Cinematic editorial layer: motion comes from the work, not a copied identity. */
+    :root { --ink:#f1eee7; --paper:#121211; --line:#45423d; --soft:rgba(241,238,231,.08); --muted:#aaa69e; --signal:#db4f31; }
+    body { background:#121211; }
+    body::before { content:""; position:fixed; z-index:-1; inset:0; pointer-events:none; background:#121211; }
+    .shell { width:min(1200px,calc(100% - 56px)); }
+    .brand { font-family:Georgia,"Songti SC",serif; font-size:25px; font-weight:700; }
+    .brand span { color:var(--ink); font-family:Arial,"PingFang SC",sans-serif; font-size:11px; font-weight:700; }
+    .nav a { font-size:12px; font-weight:500; }
+    .nav a:hover { color:#f1eee7; opacity:.6; }
+    .icon-button { border-color:var(--ink); color:var(--ink); border-radius:50%; }
+    .icon-button:hover { color:#121211; background:var(--ink); }
+    .hero { min-height:620px; padding:135px 0 86px; grid-template-columns:1.4fr .6fr; border-color:var(--line); }
+    .hero::after { content:"A QUIET RECORD OF LIVING"; right:0; top:71px; padding:0; color:var(--muted); background:transparent; font-family:Georgia,"Songti SC",serif; font-size:12px; font-weight:400; letter-spacing:0; }
+    .eyebrow { color:var(--signal); font-size:11px; font-weight:700; }
+    h1 { max-width:880px; font-family:Georgia,"Songti SC",serif; font-weight:500; line-height:1.06; text-transform:none; }
+    .hero-copy { font-family:Georgia,"Songti SC",serif; color:#d6d1c8; font-size:17px; line-height:1.8; }
+    .hero-meta { font-family:Arial,"PingFang SC",sans-serif; font-size:11px; color:var(--muted); }
+    .dot { background:var(--signal); width:5px; height:5px; border-radius:50%; }
+    section { padding:106px 0; border-color:var(--line); }
+    .section-head { margin-bottom:40px; }
+    h2 { font-family:Georgia,"Songti SC",serif; font-size:42px; font-weight:500; }
+    .section-note { font-family:Georgia,"Songti SC",serif; color:#aaa69e; }
+    .job-grid { gap:1px; background:var(--line); }
+    .job-card { min-height:325px; padding:31px; border:0; border-left:0; border-radius:0; background:#1a1917; }
+    .job-card:hover { transform:translateY(-8px); background:rgba(43,41,37,.84); border-color:transparent; box-shadow:0 22px 42px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.18); }
+    .job-card::after { content:"Scroll slowly / Frame deliberately"; color:#8b877f; font-family:Georgia,"Songti SC",serif; font-size:11px; font-weight:400; }
+    .job-type { color:var(--signal); font-size:10px; font-weight:700; }
+    .job-card h3 { margin-top:18px; font-family:Georgia,"Songti SC",serif; font-size:31px; font-weight:500; }
+    .job-card p { font-family:Georgia,"Songti SC",serif; color:#c6c1b8; font-size:15px; line-height:1.75; }
+    .price { color:var(--ink); font-family:Georgia,"Songti SC",serif; font-size:21px; font-weight:500; }
+    .arrow { width:42px; height:42px; border-color:#89847a; border-radius:50%; color:var(--ink); font-weight:400; }
+    .arrow:hover { background:var(--signal); border-color:var(--signal); color:#f8f2e9; }
+    .equipment { border-color:var(--line); }
+    .equipment-item { min-height:160px; padding:25px; background:#161513; border-color:var(--line); }
+    .equipment-item span { color:var(--muted); font-size:10px; }
+    .equipment-item strong { font-family:Georgia,"Songti SC",serif; font-size:23px; font-weight:500; }
+    .gallery { gap:14px; grid-auto-rows:78px; }
+    .photo { border:0; border-radius:0; background:#22201d; transition:transform .65s cubic-bezier(.2,.7,.2,1); }
+    .photo:hover { transform:translateY(-7px); }
+    .photo img { filter:grayscale(.35) contrast(1.04); transition:transform .8s cubic-bezier(.2,.7,.2,1); }
+    .photo:hover img { transform:scale(1.07); }
+    .placeholder { background:#22201d; color:#aaa69e; font-family:Georgia,"Songti SC",serif; }
+    .footer { padding-top:55px; color:#8f8b83; font-family:Georgia,"Songti SC",serif; }
+    .manage { background:rgba(18,18,17,.76); }
+    .panel { background:#1a1917; }
+    .editor-card,.filebox { background:#22201d; border-color:var(--line); }
+    .button { background:var(--signal); border-color:var(--signal); color:#fff8ed; font-weight:600; }
+    .button:hover { background:#f1eee7; border-color:#f1eee7; color:#121211; }
+    .button.ghost { color:#f1eee7; border-color:#777269; }
+    .button.ghost:hover { background:#f1eee7; color:#121211; }
+    .button.danger { color:#e5816c; border-color:#a85140; }
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity .9s ease,transform .9s cubic-bezier(.16,1,.3,1); }
+    .reveal.is-visible { opacity:1; transform:translateY(0); }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { transition-duration:.01ms !important; animation-duration:.01ms !important; } .reveal { opacity:1; transform:none; } }
+    /* Refined white surface and elevated interactions */
+    :root { --ink:#1b1a18; --paper:#f7f6f2; --line:#dedbd3; --soft:rgba(255,255,255,.82); --muted:#77736c; --signal:#b6442d; }
+    body,body::before { background:#f7f6f2; }.brand span,.nav a,.hero-copy,.section-note,.job-card p,.price { color:var(--ink); }.nav a:hover { color:var(--signal); opacity:1; }
+    .icon-button { background:#fff; border-color:#dfdcd5; color:var(--ink); box-shadow:0 7px 14px rgba(34,31,26,.11); transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s,background .28s; }.icon-button:hover { background:var(--ink); color:#fff; transform:translateY(-4px); box-shadow:0 14px 22px rgba(34,31,26,.18); }
+    .hero-copy { color:#56514a; }.hero::after,.section-note { color:#77736c; }.job-grid { background:#dedbd3; gap:1px; }.job-card { background:#fff; }.job-card:hover { background:#fff; transform:translateY(-10px); box-shadow:0 24px 42px rgba(39,35,29,.16),0 5px 12px rgba(39,35,29,.08); }.job-card::after { color:#98938a; }.job-card p { color:#5d5851; }.job-type { color:var(--signal); }
+    .arrow { background:#fff; border-color:#d9d5cd; color:var(--ink); box-shadow:0 7px 13px rgba(38,34,28,.13); transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s,background .28s,border-color .28s; }.arrow:hover { background:var(--signal); border-color:var(--signal); color:#fff; transform:translateY(-5px); box-shadow:0 15px 20px rgba(148,54,35,.27); }
+    .equipment-item { background:#fff; }.equipment-item span { color:#8e8980; }.photo { background:#e9e6df; box-shadow:0 7px 16px rgba(34,31,26,.08); }.photo:hover { transform:translateY(-9px); box-shadow:0 22px 36px rgba(34,31,26,.17); }.placeholder { background:#e9e6df; color:#77736c; }.footer { color:#77736c; }.manage { background:rgba(31,29,26,.32); }.panel { background:#f7f6f2; color:var(--ink); }.editor-card,.filebox { background:#fff; border-color:#ddd9d1; }.editor-card label,.hint { color:#77736c; }input,textarea { background:#fff; color:var(--ink); border-color:#ccc7be; }input:focus,textarea:focus { background:#fff; border-color:var(--signal); }.button { box-shadow:0 7px 13px rgba(148,54,35,.2); }.button:hover { box-shadow:0 13px 20px rgba(34,31,26,.17); transform:translateY(-2px); }.button.ghost { background:#fff; color:var(--ink); border-color:#d6d1c8; box-shadow:none; }.button.ghost:hover { background:var(--ink); color:#fff; }
+    @media (max-width:700px) { .shell { width:min(100% - 30px,1200px); } .hero { min-height:500px; padding:105px 0 60px; } .hero::after { top:60px; font-size:10px; } h1 { font-size:46px; } section { padding:72px 0; } h2 { font-size:35px; } .job-card { min-height:250px; padding:25px; } .job-card h3 { font-size:27px; } .gallery { gap:8px; } }
+    /* Stable type and layout across desktop and mobile browsers */
+    body { overflow-x:hidden; } h1,h2,h3,strong,p,a,button { overflow-wrap:anywhere; }
+    h1 { font-size:72px; } h2 { font-size:42px; }.job-card h3 { font-size:30px; }
+    .hero-copy { min-width:0; }.section-head > *,.job-card > * { min-width:0; }.price { white-space:normal; text-align:left; }
+    @media (max-width:920px) { .hero { grid-template-columns:1fr .7fr; gap:30px; padding-top:118px; }.hero-copy { font-size:16px; }.job-card { min-height:280px; }.equipment { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:700px) { .topbar { min-height:64px; }.brand { font-size:20px; }.nav { gap:9px; }.nav a { font-size:12px; }.icon-button { width:34px; height:34px; }.hero { display:block; min-height:0; padding:98px 0 58px; }.hero::after { position:static; display:block; margin-bottom:22px; }.hero-copy { max-width:100%; margin-top:30px; font-size:16px; }.hero-meta { gap:14px; }.section-head { display:block; }.section-note { max-width:100%; margin-top:14px; }.job-grid { grid-template-columns:1fr; }.job-card { min-height:235px; padding:23px; }.job-card h3 { font-size:25px; }.job-bottom { align-items:center; }.equipment { grid-template-columns:1fr 1fr; }.equipment-item { min-height:130px; padding:18px; }.equipment-item strong { font-size:19px; }.panel { width:100%; padding:18px 14px; }.controls { flex-wrap:wrap; }.controls .button { flex:1 1 130px; }.gallery { grid-auto-rows:52px; } }
+    @media (max-width:430px) { .shell { width:calc(100% - 24px); }.nav a { display:none; } h1 { font-size:39px; line-height:1.13; } h2 { font-size:31px; }.hero-copy { font-size:15px; }.job-card h3 { font-size:23px; }.equipment { grid-template-columns:1fr; }.gallery { gap:6px; }.photo:nth-child(n) { grid-column:span 6; grid-row:span 4; }.photo:nth-child(3n+1) { grid-column:span 12; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">FRAME <span>/ STUDIO</span></div>
+      <nav class="nav"><a href="#services">服务</a><a href="#portfolio">作品</a><button class="icon-button" id="openAuth" aria-label="账户" title="账户">◎</button><button class="icon-button" id="openManage" aria-label="编辑网站" title="编辑网站" hidden>+</button></nav>
+    </header>
+    <section class="hero">
+      <div><p class="eyebrow">Visual story / Available for commission</p><h1>把每一帧，留给值得被记住的时刻。</h1></div>
+      <div class="hero-copy">提供视频与摄影委托服务。以克制的视角、扎实的现场执行，记录品牌、人物与日常里正在发生的故事。<div class="hero-meta"><span><i class="dot"></i> 视频拍摄</span><span><i class="dot"></i> 平面摄影</span></div></div>
+    </section>
+    <section id="services"><div class="section-head"><h2>剪辑单子</h2><p class="section-note">从概念到交付，适合品牌短片、活动记录、人物叙事与社媒内容。</p></div><div class="job-grid" id="videoJobs"></div></section>
+    <section><div class="section-head"><h2>拍摄单子</h2><p class="section-note">人物、产品、活动、空间与日常。可依据实际需求定制拍摄方案。</p></div><div class="job-grid" id="photoJobs"></div></section>
+    <section><div class="section-head"><h2>现有设备</h2><p class="section-note">主力机为 Nikon ZR。也可按项目需求补充灯光、收音与其他机身。</p></div><div class="equipment" id="equipment"></div></section>
+    <section id="portfolio"><div class="section-head"><h2>以往记录</h2><p class="section-note">在编辑模式中，直接添加顾客照片；支持 JPG、PNG、WEBP、GIF 等常见图片格式。</p></div><div class="gallery" id="gallery"></div></section>
+    <footer class="footer"><span>FRAME STUDIO © 2026</span><span>视频 / 摄影 / 视觉记录</span></footer>
+  </main>
+  <aside class="manage" id="manage"><div class="panel"><div class="panel-head"><h2>编辑内容</h2><button class="icon-button" id="closeManage" aria-label="关闭编辑" title="关闭">×</button></div>
+    <div class="editor-section"><h3>剪辑单子</h3><div class="editor-list" id="videoEditor"></div><div class="controls"><span></span><button class="button ghost" data-add="video">新增剪辑单子</button></div></div>
+    <div class="editor-section"><h3>拍摄单子</h3><div class="editor-list" id="photoEditor"></div><div class="controls"><span></span><button class="button ghost" data-add="photo">新增拍摄单子</button></div></div>
+    <div class="editor-section"><h3>设备清单</h3><div class="editor-list" id="equipmentEditor"></div><div class="controls"><span></span><button class="button ghost" id="addEquipment">新增设备</button></div></div>
+    <div class="editor-section"><h3>顾客作品照片</h3><div class="filebox"><input type="file" id="photoUpload" accept="image/jpeg,image/png,image/webp,image/gif" multiple><p class="hint">一次可选择多张。为了让浏览器保存更稳定，建议单张图片不超过 4MB。</p></div><div class="controls"><button class="button ghost danger" id="clearPhotos">清空照片</button><span></span></div></div>
+    <div class="editor-section"><h3>收款二维码</h3><div class="filebox"><input type="file" id="qrUpload" accept="image/jpeg,image/png,image/webp"><p class="hint">上传顾客确认需求后显示的收款二维码。</p></div></div>
+    <div class="editor-section"><h3>编辑账户</h3><div class="editor-list" id="editorAccounts"></div><div class="controls"><span></span><button class="button ghost" id="addEditor">新增编辑用户</button></div></div>
+  </div></aside>
+  <aside class="manage" id="authModal"><div class="panel"><div class="panel-head"><h2>账户中心</h2><button class="icon-button" id="closeAuth" aria-label="关闭账户" title="关闭">×</button></div><div class="editor-section"><div id="authSignedOut"><p class="hint">注册账户后可保存自己的订单与参考价格记录。</p><label>账户名</label><input id="authName" placeholder="输入账户名"><label>密码</label><input id="authPassword" type="password" placeholder="输入密码"><div class="controls"><button class="button ghost" id="createAccount">创建账户</button><button class="button" id="loginAccount">登录</button></div><p class="hint" id="authMessage"></p></div><div id="authSignedIn" hidden><p id="currentAccount"></p><div id="purchaseHistory" class="editor-list"></div><div class="controls"><span></span><button class="button ghost" id="logoutAccount">退出登录</button></div></div></div></div></aside>
+  <script>
+    const defaults = { video:[{title:'品牌短片 / 叙事影像',price:'¥ 2,800 起',description:'适合品牌故事、人物访谈与产品内容。包含前期沟通、半日拍摄与基础剪辑。'},{title:'活动现场记录',price:'¥ 1,800 起',description:'用流动的镜头保留活动氛围与关键瞬间，适合发布会、展览、聚会与演出。'}], photo:[{title:'人物肖像拍摄',price:'¥ 800 起',description:'自然光与简单布光结合，适合个人肖像、情侣与生活方式记录。'},{title:'品牌 / 产品拍摄',price:'¥ 1,200 起',description:'为产品和品牌建立一致、耐看的视觉语言，可按拍摄数量与用途定制。'}], equipment:['Nikon ZR','定焦镜头组','机顶收音麦克风','灯光'] };
+    const key='frame-studio-data-v1',accountsKey='frame-studio-accounts-v1',sessionKey='frame-studio-session-v1',qrKey='frame-studio-payment-qr-v1';
+    const defaultAccounts=[{name:'studio-admin',password:'123456',role:'editor',purchases:[]},{name:'studio-editor',password:'123456',role:'editor',purchases:[]}];
+    let accounts=JSON.parse(localStorage.getItem(accountsKey)||'null')||defaultAccounts;
+    let activeAccount=JSON.parse(localStorage.getItem(sessionKey)||'null');
+    let data = JSON.parse(localStorage.getItem(key) || 'null') || defaults;
+    const editorMode = new URLSearchParams(location.search).get('edit') === '1' && activeAccount?.role==='editor';
+    if(!data.equipment.includes('灯光')) { data.equipment.push('灯光'); localStorage.setItem(key,JSON.stringify(data)); }
+    if(editorMode) { document.getElementById('openManage').hidden=false; document.title='编辑网站 / FRAME'; }
+    let photos = JSON.parse(localStorage.getItem(key+'-photos') || '[]');
+    const save=()=>localStorage.setItem(key,JSON.stringify(data));
+    const saveAccounts=()=>localStorage.setItem(accountsKey,JSON.stringify(accounts));
+    function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+    function renderJobs(type){const target=document.getElementById(type+'Jobs'), list=data[type]; target.innerHTML=list.length?list.map((j,i)=>`<article class="job-card" data-index="${i}"><div><p class="job-type">${type==='video'?'EDITING COMMISSION':'PHOTO COMMISSION'} / ${String(i+1).padStart(2,'0')}</p><h3>${esc(j.title)}</h3><p>${esc(j.description)}</p></div><div class="job-bottom"><strong class="price">${esc(j.price)}</strong><a class="arrow" href="request.html?type=${type}&job=${i}${editorMode?'&edit=1':''}" aria-label="填写需求" title="填写需求">↗</a></div></article>`).join(''):'<div class="empty">暂未添加服务单子</div>';}
+    function renderEquipment(){document.getElementById('equipment').innerHTML=data.equipment.length?data.equipment.map((x,i)=>`<div class="equipment-item"><span>EQUIPMENT / ${String(i+1).padStart(2,'0')}</span><strong>${esc(x)}</strong></div>`).join(''):'<div class="empty">暂未添加设备</div>';}
+    function renderGallery(){const g=document.getElementById('gallery');const place=Array.from({length:Math.max(0,6-photos.length)},(_,i)=>`<div class="photo"><div class="placeholder">顾客作品照片<br>位置 ${photos.length+i+1}</div></div>`).join('');g.innerHTML=photos.map((p,i)=>`<div class="photo" title="顾客作品 ${i+1}"><img src="${p}" alt="顾客作品 ${i+1}"></div>`).join('')+place;}
+    function field(label,value,prop,area=false){return `<label>${label}</label>${area?`<textarea data-prop="${prop}">${esc(value)}</textarea>`:`<input data-prop="${prop}" value="${esc(value)}">`}`}
+    function renderEditor(type){const target=document.getElementById(type+'Editor');target.innerHTML=data[type].map((j,i)=>`<div class="editor-card" data-type="${type}" data-index="${i}">${field('标题',j.title,'title')}${field('价格',j.price,'price')}${field('介绍',j.description,'description',true)}<div class="controls"><button class="button ghost danger" data-remove-job>删除</button><button class="button" data-save-job>保存</button></div></div>`).join('');}
+    function renderEquipmentEditor(){document.getElementById('equipmentEditor').innerHTML=data.equipment.map((e,i)=>`<div class="editor-card" data-index="${i}"><label>设备名称</label><input value="${esc(e)}"><div class="controls"><button class="button ghost danger" data-remove-equipment>删除</button><button class="button" data-save-equipment>保存</button></div></div>`).join('');}
+    function renderAccounts(){const target=document.getElementById('editorAccounts');if(!target)return;target.innerHTML=accounts.filter(a=>a.role==='editor').map(a=>`<div class="editor-card"><strong>${esc(a.name)}</strong><p class="hint">编辑权限</p><div class="controls"><span></span><button class="button ghost danger" data-remove-editor="${esc(a.name)}">移除</button></div></div>`).join('');}
+    function renderAccountCenter(){const signed=!!activeAccount;document.getElementById('authSignedOut').hidden=signed;document.getElementById('authSignedIn').hidden=!signed;if(!signed)return;document.getElementById('currentAccount').textContent=`已登录：${activeAccount.name}${activeAccount.role==='editor'?'（编辑用户）':''}`;const latest=accounts.find(a=>a.name===activeAccount.name);document.getElementById('purchaseHistory').innerHTML=(latest?.purchases||[]).length?(latest.purchases||[]).map(p=>`<div class="editor-card"><strong>${esc(p.title)}</strong><p class="hint">参考价格：${esc(p.price)} / ${esc(p.status)}</p></div>`).join(''):'<p class="hint">暂无历史订单。</p>';}
+    function render(){renderJobs('video');renderJobs('photo');renderEquipment();renderGallery();renderEditor('video');renderEditor('photo');renderEquipmentEditor();renderAccounts();renderAccountCenter();}
+    document.addEventListener('mousemove',e=>{const c=e.target.closest('.job-card');if(c){const r=c.getBoundingClientRect();c.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');c.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');}});
+    document.getElementById('openManage').onclick=()=>document.getElementById('manage').classList.add('open');document.getElementById('closeManage').onclick=()=>document.getElementById('manage').classList.remove('open');document.getElementById('manage').onclick=e=>{if(e.target.id==='manage')e.currentTarget.classList.remove('open')};
+    document.addEventListener('click',e=>{const add=e.target.dataset.add;if(add){data[add].push({title:'新的'+(add==='video'?'剪辑':'拍摄')+'单子',price:'¥ 价格待定',description:'在这里写下这项服务的内容与交付说明。'});save();render();return;}const c=e.target.closest('.editor-card');if(!c)return;if(e.target.hasAttribute('data-save-job')){const j=data[c.dataset.type][c.dataset.index];c.querySelectorAll('[data-prop]').forEach(x=>j[x.dataset.prop]=x.value.trim());save();render();}if(e.target.hasAttribute('data-remove-job')){data[c.dataset.type].splice(c.dataset.index,1);save();render();}if(e.target.hasAttribute('data-save-equipment')){data.equipment[c.dataset.index]=c.querySelector('input').value.trim()||'未命名设备';save();render();}if(e.target.hasAttribute('data-remove-equipment')){data.equipment.splice(c.dataset.index,1);save();render();}});
+    document.getElementById('addEquipment').onclick=()=>{data.equipment.push('新设备');save();render();};
+    document.getElementById('openAuth').onclick=()=>document.getElementById('authModal').classList.add('open');document.getElementById('closeAuth').onclick=()=>document.getElementById('authModal').classList.remove('open');
+    document.getElementById('createAccount').onclick=()=>{const name=document.getElementById('authName').value.trim(),password=document.getElementById('authPassword').value;if(!name||!password)return document.getElementById('authMessage').textContent='请填写账户名和密码。';if(accounts.some(a=>a.name===name))return document.getElementById('authMessage').textContent='该账户名已存在。';const account={name,password,role:'customer',purchases:[]};accounts.push(account);saveAccounts();activeAccount={name,role:'customer'};localStorage.setItem(sessionKey,JSON.stringify(activeAccount));render();};
+    document.getElementById('loginAccount').onclick=()=>{const name=document.getElementById('authName').value.trim(),password=document.getElementById('authPassword').value,account=accounts.find(a=>a.name===name&&a.password===password);if(!account)return document.getElementById('authMessage').textContent='账户名或密码不正确。';activeAccount={name:account.name,role:account.role};localStorage.setItem(sessionKey,JSON.stringify(activeAccount));if(account.role==='editor'&&new URLSearchParams(location.search).get('edit')==='1')location.reload();else render();};
+    document.getElementById('logoutAccount').onclick=()=>{activeAccount=null;localStorage.removeItem(sessionKey);render();};
+    document.getElementById('addEditor').onclick=()=>{const name=prompt('编辑账户名');if(!name)return;const password=prompt('编辑账户密码');if(!password)return;if(accounts.some(a=>a.name===name))return alert('该账户名已存在。');accounts.push({name,password,role:'editor',purchases:[]});saveAccounts();render();};
+    document.getElementById('editorAccounts').onclick=e=>{const name=e.target.dataset.removeEditor;if(!name)return;if(accounts.filter(a=>a.role==='editor').length<=1)return alert('至少保留一名编辑用户。');accounts=accounts.filter(a=>a.name!==name);saveAccounts();render();};
+    document.getElementById('qrUpload').onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{localStorage.setItem(qrKey,reader.result);alert('收款二维码已保存。');}catch{alert('二维码图片过大，请使用更小的图片。');}};reader.readAsDataURL(file);e.target.value='';};
+    if(new URLSearchParams(location.search).get('edit')==='1'&&!editorMode){setTimeout(()=>{document.getElementById('authModal').classList.add('open');document.getElementById('authMessage').textContent='请使用编辑账户登录后继续。';},0);}
+    document.getElementById('photoUpload').onchange=e=>{[...e.target.files].forEach(file=>{const r=new FileReader();r.onload=()=>{photos.push(r.result);try{localStorage.setItem(key+'-photos',JSON.stringify(photos));renderGallery();}catch{photos.pop();alert('图片太大，无法保存在浏览器中。请尝试更小的图片。')}};r.readAsDataURL(file)});e.target.value='';};
+    document.getElementById('clearPhotos').onclick=()=>{if(confirm('确定要清空所有已添加的照片吗？')){photos=[];localStorage.removeItem(key+'-photos');renderGallery();}};
+    render();
+    const observer = new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}}),{threshold:.12});
+    document.querySelectorAll('.hero, main > section').forEach(section=>{section.classList.add('reveal');observer.observe(section);});
+  </script>
+</body>
+</html>
